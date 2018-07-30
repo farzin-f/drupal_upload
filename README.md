@@ -2,14 +2,11 @@
 
 ### Les notes sur les fichiers
 
-- ```drupal_files.zip```: contient les fichiers du projet
-  - Les modules *document* et *upload*. Veuillez les copier dans le dossier de ```sites/all/modules```.
-  - La thème de *bootstrap* utilisé. C'est un module déjà
-      construit par drupal que j'ai utilisé pour les vues.
+- Vous pouvez télétransmetter des documents à partir du lien **Upload Document** dans le menu de navigation.
 	  
-- ```docker-compose```: contient les fichiers ```docker-compose.yml```
-  et ```.env``` pour instancier un image de *docker*:
-  - ```$ docker-compose up -d```
+- Vous pouvez accéder des documents déjà soumis à partir du lien **Document List** dans le menu de navigation.
+  - Vous pouvez consulter chaque document en cliquant en-dessus le lien d'un document.
+  - Vous êtes capable de souprimer un document.
 
 - ```demo.mkv``` un toute courte vidéo de demonstration de projet fait.
   
