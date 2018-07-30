@@ -1,0 +1,25 @@
+<?php
+
+/**
+ * Implements hook_menu
+ */
+function upload_menu() {
+  $items = array();
+
+  $items['upload'] = array(
+    'title' => 'Upload Document',
+    'description' => 'Upload different type of documents',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('upload_document'),
+    'file' => 'upload.inc',
+    'access arguments' => array('access content'),
+    'type' => MENU_NORMAL_ITEM
+
+  );
+
+  return $items;
+}
+
+function upload_theme(){
+  return array();
+}

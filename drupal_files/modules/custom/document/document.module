@@ -1,0 +1,49 @@
+<?php
+
+/**
+ * Implements hook_menu()
+ */
+function document_menu() {
+$items = array();
+
+// Document list route to see all the documents
+// belong to a user
+$items['document'] = array(
+  'title' => t('Document List'),
+    'description' => 'Access to all the uploaded documents',
+    'page callback' => 'document_all',
+    'file' => 'document.inc',
+    'access arguments' => array(
+      'access content',
+        ),
+    'type' => MENU_NORMAL_ITEM,
+    );
+
+// Route to view the document by id
+$items['document/%'] = array(
+  'title' => t('View Document'),
+    'description' => "Show the document",
+    'page callback' => 'document_show',
+    'page arguments' => array(1),
+    'file' => 'document.inc',
+    'access arguments' => array(
+      'access content',
+        ),
+    'type' => MENU_NORMAL_ITEM,
+    );
+
+ // Route to delete the document by id
+$items['document/%/delete'] = array(
+  'title' => t('Delete Document'),
+    'description' => "Delete a document by its id",
+    'page callback' => 'document_delete',
+    'page arguments' => array(1),
+    'file' => 'document.inc',
+    'access arguments' => array(
+      'access content',
+        ),
+    'type' => MENU_NORMAL_ITEM,
+    );
+
+return $items;
+}
