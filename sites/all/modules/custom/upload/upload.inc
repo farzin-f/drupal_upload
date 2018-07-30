@@ -1,0 +1,191 @@
+<?php
+
+/**
+ * Implements hook_form()
+ */
+function upload_document($form, &$form_state){
+
+  $form = array();
+
+  // File upload tag to browse the file
+  $form['upload_item'] = array(
+    '#type' => 'file',
+    '#attributes' => array(
+      'multiple' => array(
+        'multiple',
+      ),
+    ),
+    '#title' => t('Please, select your document'),
+    '#description' => '<em>(Allowed formats are: PDF, doc, docx</em>)',
+  );
+
+  // Optional note entered by the user
+  $form['note'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Notes:'),
+  );
+
+
+
+  // $form_state['time'] = REQUEST_TIME;
+
+  // $form['status'] = array(
+  //   '#markup' => '<div class="progress-bar" id="progress-status"></div>',
+  // );
+  // $form['submit'] = array(
+  //   '#type' => 'submit',
+  //   '#value' => t('Upload Document'),
+  //   '#ajax' => array(
+  //     // Here we set up our AJAX callback handler.
+  //     'callback' => 'progressbar_callback',
+  //     // Tell FormAPI about our progress bar.
+  //     'progress' => array(
+  //       'type' => 'bar',
+  //       // 'type' => 'throbber',
+  //       'message' => t('Execute..'),
+  //       // Have the progress bar access this URL path.
+  //       'url' => url('upload/progress/' . $form_state['time']),
+  //       // The time interval for the progress bar to check for updates.
+  //       'interval' => 1000,
+  //     ),
+  //   ),
+  // );
+
+  // Submit button to submit file upload request
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Upload Document'),
+    '#submit' => array('upload_submit')
+  );
+
+  return $form;
+}
+
+/*****FUTURE*****/
+
+/**
+ * Handling storing the uploaded file inside the uploads directory
+ * as well as its records inside the document database table
+*/
+function upload_submit($form, &$form_state){
+  // Getting the current user information
+  global $user;
+
+  // User note received from note textarea form field
+  $note = $form_state['values']['note'];
+
+  // Acceptable document extensions
+  $extensions = 'pdf doc docx';
+  $validators = array(
+    'file_validate_size' => array(
+      10*1024*1024              // Acceptable document size 10MB
+    ),
+    'file_validate_extensions' => array($extensions),
+  );
+
+  // Begin building file object.
+  $file = new stdClass();
+  $file->filename = trim(
+    drupal_basename($_FILES['files']['name']['upload_item']), '.');
+
+  // Renaming the file with a unique id to avoid writing the already
+  // existing file
+  $ext = pathinfo($file->filename, PATHINFO_EXTENSION);
+  $file->uniquename = uniqid().".$ext";
+  $_FILES['files']['name']['upload_item'] = $file->uniquename;
+  $file->size = $_FILES['files']['size']['upload_item'];
+
+  // Document sotrage in private location
+  $location = 'private://';
+
+
+  // Storing the data on the server private directory
+  $upload_check = file_save_upload(
+    'upload_item', $validators, $location);
+
+
+  // If upload succeeded, store the record in the
+  // database and show the success message
+  if($upload_check){
+
+    // Storing the document data inside the server
+    $did = db_insert('document')
+      ->fields(array(
+          'title' => $file->filename,
+          'type' => $ext,
+          'size' => $file->size,
+          'path' => $file->uniquename,
+          'note' => $note,
+          'uid' => $user->uid,
+          'created' => REQUEST_TIME,
+        ))
+  ->execute();
+
+    drupal_set_message(
+      "<b>$file->filename</b> has been successfully uploaded");
+  }
+}
+
+
+/**
+ * Getting the progress bar value and send the completion message
+ * when upload is finished
+ */
+function progressbar_progress($time) {
+
+
+  $progress = array(
+    'message' => t('Starting upload...'),
+    'percentage' => -1,
+  );
+
+  $key = "upload_progress_". $_POST["files[upload_item]"];
+  $progress['percentage'] = $_SESSION[$key];
+
+  $completed_percentage = variable_get('progressbar_' . $time, 0);
+
+  if ($completed_percentage) {
+    $progress['message'] = t('Uploading...');
+    $progress['percentage'] = $completed_percentage;
+  }
+
+  drupal_json_output($progress);
+}
+
+
+
+/**
+ * Setting the progress value and pass it to progressbar_progress
+ * to send it back as a json object
+ */
+function progressbar_callback($form, &$form_state) {
+
+
+  $variable_name = 'progressbar_' . $form_state['time'];
+
+
+
+  $commands = array();
+  // variable_set($variable_name, 10);
+  // sleep(2);
+  // variable_set($variable_name, 40);
+  // sleep(2);
+  // variable_set($variable_name, 70);
+  // sleep(2);
+  // variable_set($variable_name, 90);
+  // sleep(2);
+  // variable_del($variable_name);
+
+  //TODO
+  // store the file inside the database and on the disk
+
+  //$commands[] = ajax_command_html('#progress-status',
+  //theme("<b>$file->filename</b> has been successfully uploaded"));
+
+  $commands[] = ajax_command_append('.alert', theme("<b>$file->filename</b> has been successfully uploaded"));
+
+  return array(
+    '#type' => 'ajax',
+    '#commands' => $commands,
+  );
+}
